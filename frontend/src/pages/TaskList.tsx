@@ -114,77 +114,81 @@ const TaskList: React.FC = () => {
 
     return (
         <Layout>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
                 {/* Main Content */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-800">My Tasks</h2>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-                        >
-                            <Plus className="w-5 h-5" />
-                            New Task
-                        </button>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {['ALL', 'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'].map((f) => (
+                <div className="lg:col-span-2 h-full flex flex-col min-h-0">
+                    <div className="flex-none space-y-6 mb-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-gray-800">My Tasks</h2>
                             <button
-                                key={f}
-                                onClick={() => setFilter(f)}
-                                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shadow-sm ${filter === f
-                                    ? 'bg-gray-900 text-white'
-                                    : 'bg-white/90 backdrop-blur-sm border border-gray-200/70 text-gray-600 hover:bg-gray-50'
-                                    }`}
+                                onClick={() => setIsModalOpen(true)}
+                                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                             >
-                                {f.replace('_', ' ')}
+                                <Plus className="w-5 h-5" />
+                                New Task
                             </button>
-                        ))}
+                        </div>
+
+                        {/* Filters */}
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            {['ALL', 'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'].map((f) => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFilter(f)}
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shadow-sm ${filter === f
+                                        ? 'bg-gray-900 text-white'
+                                        : 'bg-white/90 backdrop-blur-sm border border-gray-200/70 text-gray-600 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {f.replace('_', ' ')}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Task Grid with Drag and Drop */}
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                    >
-                        <SortableContext
-                            items={tasks.map(t => t.id)}
-                            strategy={verticalListSortingStrategy}
+                    {/* Task Grid with Drag and Drop - SCROLLABLE AREA */}
+                    <div className="flex-1 overflow-y-auto min-h-0 pr-2 pb-4">
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
                         >
-                            <div className="grid gap-4">
-                                {tasks.length === 0 ? (
-                                    <div className="text-center py-12 bg-white/90 backdrop-blur-sm rounded-xl border border-dashed border-gray-300">
-                                        <p className="text-gray-500">No tasks found. Create one or ask AI Assistant!</p>
-                                    </div>
-                                ) : (
-                                    tasks.map((task) => (
-                                        <TaskCard
-                                            key={task.id}
-                                            task={task}
-                                            onStatusChange={handleStatusChange}
-                                            onDelete={handleDelete}
-                                            onEdit={handleEdit}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        </SortableContext>
-                    </DndContext>
+                            <SortableContext
+                                items={tasks.map(t => t.id)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <div className="grid gap-4">
+                                    {tasks.length === 0 ? (
+                                        <div className="text-center py-12 bg-white/90 backdrop-blur-sm rounded-xl border border-dashed border-gray-300">
+                                            <p className="text-gray-500">No tasks found. Create one or ask AI Assistant!</p>
+                                        </div>
+                                    ) : (
+                                        tasks.map((task) => (
+                                            <TaskCard
+                                                key={task.id}
+                                                task={task}
+                                                onStatusChange={handleStatusChange}
+                                                onDelete={handleDelete}
+                                                onEdit={handleEdit}
+                                            />
+                                        ))
+                                    )}
+                                </div>
+                            </SortableContext>
+                        </DndContext>
+                    </div>
                 </div>
 
                 {/* Sidebar (AI) */}
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 h-full overflow-y-auto pb-4">
                     <ChatInterface onCommandExecuted={fetchTasks} />
                 </div>
             </div>
 
             {/* Manual Create Modal (Simple) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 my-8 mx-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-bold">New Task</h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
