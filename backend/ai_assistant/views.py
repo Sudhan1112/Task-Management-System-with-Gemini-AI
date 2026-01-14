@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .services import GeminiService
+from .services import GroqService
 from .dispatcher import IntentDispatcher
 
 class AICommandView(APIView):
@@ -11,7 +11,7 @@ class AICommandView(APIView):
             return Response({"error": "Command is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 1. Interpret Command
-        intent = GeminiService.interpret_command(command)
+        intent = GroqService.interpret_command(command)
         
         if intent.get('action') == 'error':
              return Response({"error": intent.get('message')}, status=status.HTTP_503_SERVICE_UNAVAILABLE)

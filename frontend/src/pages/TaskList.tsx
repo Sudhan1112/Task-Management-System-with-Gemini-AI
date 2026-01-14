@@ -1,10 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { getTasks, updateTaskStatus, deleteTask, createTask } from '../services/api';
-import { Task, TaskStatus } from '../types';
+import { getTasks, updateTaskStatus, deleteTask, createTask, updateTask } from '../services/api';
+import type { Task } from '../types';
+import { TaskStatus } from '../types';
 import TaskCard from '../components/TaskCard';
 import ChatInterface from '../components/ChatInterface';
 import { Plus, X } from 'lucide-react';
 import Layout from '../components/Layout';
+import TaskEditModal from '../components/TaskEditModal';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 const TaskList: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -12,6 +29,18 @@ const TaskList: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskDesc, setNewTaskDesc] = useState('');
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // Requires 8px movement to start dragging
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const fetchTasks = async () => {
         try {
@@ -55,6 +84,34 @@ const TaskList: React.FC = () => {
         }
     }
 
+    const handleEdit = (task: Task) => {
+        setEditingTask(task);
+    };
+
+    const handleSaveEdit = async (title: string, description: string) => {
+        if (!editingTask) return;
+        try {
+            await updateTask(editingTask.id, title, description);
+            setEditingTask(null);
+            fetchTasks();
+        } catch (error) {
+            alert("Failed to update task");
+        }
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            setTasks((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over.id);
+
+                return arrayMove(items, oldIndex, newIndex);
+            });
+        }
+    };
+
     return (
         <Layout>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -64,7 +121,7 @@ const TaskList: React.FC = () => {
                         <h2 className="text-2xl font-bold text-gray-800">My Tasks</h2>
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
                         >
                             <Plus className="w-5 h-5" />
                             New Task
@@ -77,9 +134,9 @@ const TaskList: React.FC = () => {
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === f
-                                        ? 'bg-gray-900 text-white'
-                                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shadow-sm ${filter === f
+                                    ? 'bg-gray-900 text-white'
+                                    : 'bg-white/90 backdrop-blur-sm border border-gray-200/70 text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
                                 {f.replace('_', ' ')}
@@ -87,23 +144,35 @@ const TaskList: React.FC = () => {
                         ))}
                     </div>
 
-                    {/* Task Grid */}
-                    <div className="grid gap-4">
-                        {tasks.length === 0 ? (
-                            <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-                                <p className="text-gray-500">No tasks found. Create one or ask Gemini!</p>
+                    {/* Task Grid with Drag and Drop */}
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={tasks.map(t => t.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="grid gap-4">
+                                {tasks.length === 0 ? (
+                                    <div className="text-center py-12 bg-white/90 backdrop-blur-sm rounded-xl border border-dashed border-gray-300">
+                                        <p className="text-gray-500">No tasks found. Create one or ask AI Assistant!</p>
+                                    </div>
+                                ) : (
+                                    tasks.map((task) => (
+                                        <TaskCard
+                                            key={task.id}
+                                            task={task}
+                                            onStatusChange={handleStatusChange}
+                                            onDelete={handleDelete}
+                                            onEdit={handleEdit}
+                                        />
+                                    ))
+                                )}
                             </div>
-                        ) : (
-                            tasks.map((task) => (
-                                <TaskCard
-                                    key={task.id}
-                                    task={task}
-                                    onStatusChange={handleStatusChange}
-                                    onDelete={handleDelete}
-                                />
-                            ))
-                        )}
-                    </div>
+                        </SortableContext>
+                    </DndContext>
                 </div>
 
                 {/* Sidebar (AI) */}
@@ -114,8 +183,8 @@ const TaskList: React.FC = () => {
 
             {/* Manual Create Modal (Simple) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 my-8 mx-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-bold">New Task</h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -161,6 +230,15 @@ const TaskList: React.FC = () => {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingTask && (
+                <TaskEditModal
+                    task={editingTask}
+                    onClose={() => setEditingTask(null)}
+                    onSave={handleSaveEdit}
+                />
             )}
         </Layout>
     );

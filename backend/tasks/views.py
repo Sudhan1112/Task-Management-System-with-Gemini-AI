@@ -10,6 +10,16 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all().order_by('-created_at')
     serializer_class = TaskSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        status_param = request.query_params.get('status')
+        
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -1,15 +1,33 @@
 import React from 'react';
-import { Task, TaskStatus } from '../types';
-import { CheckCircle, Clock, Circle, Trash2, ArrowRight } from 'lucide-react';
+import type { Task } from '../types';
+import { TaskStatus } from '../types';
+import { CheckCircle, Clock, Circle, Trash2, ArrowRight, Pencil, GripVertical } from 'lucide-react';
 import clsx from 'clsx';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TaskCardProps {
     task: Task;
     onStatusChange: (id: number, status: TaskStatus) => void;
     onDelete: (id: number) => void;
+    onEdit: (task: Task) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onDelete }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onDelete, onEdit }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: task.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
     const getStatusIcon = () => {
         switch (task.status) {
             case TaskStatus.COMPLETED:
@@ -30,11 +48,28 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onDelete }) =
     const nextStatus = getNextStatus();
 
     return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={clsx(
+                "bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-gray-200/70 hover:shadow-md transition-shadow duration-200",
+                isDragging && "opacity-50 shadow-xl ring-2 ring-blue-500"
+            )}
+        >
             <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 flex-1">
+                    {/* Drag Handle */}
+                    <button
+                        {...attributes}
+                        {...listeners}
+                        className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
+                        title="Drag to reorder"
+                    >
+                        <GripVertical className="w-5 h-5" />
+                    </button>
+
                     <div className="mt-1">{getStatusIcon()}</div>
-                    <div>
+                    <div className="flex-1">
                         <h3 className={clsx("font-medium text-lg", task.status === TaskStatus.COMPLETED && "text-gray-500 line-through")}>
                             {task.title}
                         </h3>
@@ -51,13 +86,22 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onDelete }) =
                     </div>
                 </div>
 
-                <button
-                    onClick={() => onDelete(task.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                    title="Delete Task"
-                >
-                    <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex gap-1">
+                    <button
+                        onClick={() => onEdit(task)}
+                        className="text-gray-400 hover:text-blue-500 transition-colors p-1"
+                        title="Edit Task"
+                    >
+                        <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => onDelete(task.id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                        title="Delete Task"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             {nextStatus && (

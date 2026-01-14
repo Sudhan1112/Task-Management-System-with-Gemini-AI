@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { Task, TaskStatus } from './types.ts';
+import { TaskStatus } from '../types';
+import type { Task } from '../types';
 
 const api = axios.create({
     baseURL: 'http://localhost:8000/api',
@@ -18,6 +19,11 @@ export const createTask = async (title: string, description?: string) => {
 
 export const updateTaskStatus = async (id: number, status: TaskStatus) => {
     const response = await api.patch<Task>(`/tasks/${id}/`, { status });
+    return response.data;
+};
+
+export const updateTask = async (id: number, title: string, description?: string) => {
+    const response = await api.patch<Task>(`/tasks/${id}/`, { title, description });
     return response.data;
 };
 

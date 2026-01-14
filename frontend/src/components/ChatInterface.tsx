@@ -39,7 +39,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onCommandExecuted }) => {
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sticky top-24">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/70 p-4 sticky top-24">
             <div className="flex items-center gap-2 mb-3 text-blue-600 font-medium">
                 <Sparkles className="w-5 h-5" />
                 <h2>AI Assistant</h2>
@@ -49,7 +49,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onCommandExecuted }) => {
                 <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask Gemini to create or manage tasks..."
+                    placeholder="Ask AI Assistant to create or manage tasks..."
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 pr-10 min-h-[100px] text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
                     disabled={loading}
                 />
