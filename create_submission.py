@@ -18,7 +18,7 @@ def zip_project():
             dirs[:] = [d for d in dirs if d not in ['venv', 'node_modules', '.git', '.gemini', '__pycache__', 'dist']]
             
             for file in files:
-                if file.endswith('.zip') or file.endswith('. sqlite3'):
+                if file.endswith('.zip') or file.endswith('.sqlite3'):
                     continue
                 file_path = os.path.join(root, file)
                 arcname = os.path.relpath(file_path, source_dir)
