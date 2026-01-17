@@ -96,16 +96,16 @@ User Prompt → AI API → Intent Dispatcher → TaskService → Database
 
 ### Frontend Component Structure
 
-* **App.tsx**
+* **App.jsx**
   Root entry point, routing, and global layout.
 
-* **TaskList.tsx**
+* **TaskList.jsx**
   Main dashboard integrating task lists, drag-and-drop logic, and state handling.
 
-* **TaskCard.tsx**
+* **TaskCard.jsx**
   Reusable UI component for rendering individual tasks.
 
-* **ChatInterface.tsx**
+* **ChatInterface.jsx**
   AI sidebar handling user input, API calls, and AI responses.
 
 ---
@@ -427,22 +427,22 @@ Task Management System/
 │   │   │   └── react.svg         # Icon: React framework logo
 │   │   │
 │   │   ├── components/           # UI Components: Reusable React components
-│   │   │   ├── ChatInterface.tsx # Component: The AI sidebar handling user input and chat display
-│   │   │   ├── Layout.tsx        # Component: Main layout wrapper defining structure (Sidebar/Main area)
-│   │   │   ├── TaskCard.tsx      # Component: Renders a single task card with drag-handle and actions
-│   │   │   └── TaskEditModal.tsx # Component: Modal dialog form for editing task details
+│   │   │   ├── ChatInterface.jsx # Component: The AI sidebar handling user input and chat display
+│   │   │   ├── Layout.jsx        # Component: Main layout wrapper defining structure (Sidebar/Main area)
+│   │   │   ├── TaskCard.jsx      # Component: Renders a single task card with drag-handle and actions
+│   │   │   └── TaskEditModal.jsx # Component: Modal dialog form for editing task details
 │   │   │
 │   │   ├── pages/                # Page Views: Top-level components representing full pages
-│   │   │   └── TaskList.tsx      # Page: The main dashboard view integrating Lists, DnD, and State Management
+│   │   │   └── TaskList.jsx      # Page: The main dashboard view integrating Lists, DnD, and State Management
 │   │   │
 │   │   ├── services/             # API Layer: Functions for communicating with the Backend
-│   │   │   └── api.ts            # API Client: Axios configuration and functions for all GET/POST requests
+│   │   │   └── api.js            # API Client: Axios configuration and functions for all GET/POST requests
 │   │   │
 │   │   ├── App.css               # Styles: Global application-specific CSS styles
-│   │   ├── App.tsx               # Root Component: Sets up Routes, Toast providers, and global providers
+│   │   ├── App.jsx               # Root Component: Sets up Routes, Toast providers, and global providers
 │   │   ├── index.css             # Styles: Tailwind directives and base CSS reset
-│   │   ├── main.tsx              # Entry Point: Mounts the React application to the DOM
-│   │   └── types.ts              # Type Definitions: Shared TypeScript interfaces (Task, TaskStatus)
+│   │   ├── main.jsx              # Entry Point: Mounts the React application to the DOM
+│   │   └── types.js              # Type Definitions: Shared JavaScript constants/types (Task, TaskStatus)
 │   │
 │   ├── .gitignore                # Git Configuration: Specifies frontend files to ignore (e.g., node_modules)
 │   ├── eslint.config.js          # Linter Config: Rules for code quality and consistency (ESLint)
@@ -451,10 +451,7 @@ Task Management System/
 │   ├── package.json              # Project Manifest: Scripts, version, and dependency definitions
 │   ├── postcss.config.js         # CSS Config: Configuration for PostCSS (used by Tailwind)
 │   ├── tailwind.config.js        # Tailwind Config: Custom themes, colors, and content paths
-│   ├── tsconfig.app.json         # TypeScript: Configuration for application code
-│   ├── tsconfig.json             # TypeScript: Base configuration reference
-│   ├── tsconfig.node.json        # TypeScript: Configuration for Node.js based build tools
-│   └── vite.config.ts            # Build Tool: Configuration for Vite dev server and bundler
+│   └── vite.config.js            # Build Tool: Configuration for Vite dev server and bundler
 │
 ├── .git/                         # Version Control: Git repository metadata folder
 ├── .gitignore                    # Git Configuration: Root level ignore rules (backend venv, etc.)
