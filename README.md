@@ -343,6 +343,47 @@ GROQ_API_KEY=your_key_here
 * High intent accuracy
 
 ---
+## 📸 UI Preview – Task Management System (AI-Powered)
+
+This section showcases the user interface and task flow across different task states in the application.
+
+---
+
+### 🧾 All Tasks View
+Displays all tasks regardless of their current status (Not Started, In Progress, Completed).
+
+<img width="1198" height="892" alt="All Tasks View" src="https://github.com/user-attachments/assets/73016934-d353-41fe-8f89-be220deae1c3" />
+
+---
+
+### ⏳ Not Started Tasks
+Shows tasks that are yet to be started. Users can move tasks to the *In Progress* state.
+
+<img width="1197" height="664" alt="Not Started Tasks" src="https://github.com/user-attachments/assets/23df2394-2dad-46b8-85a8-a5d150148504" />
+
+---
+
+### 🔄 In Progress Tasks
+Highlights tasks currently being worked on, with an option to mark them as completed.
+
+<img width="1104" height="561" alt="In Progress Tasks" src="https://github.com/user-attachments/assets/a60d6ec0-0278-4d0e-b5d9-b4a57ef264f3" />
+
+---
+
+### ✅ Completed Tasks
+Lists tasks that have been successfully completed.
+
+<img width="1127" height="583" alt="Completed Tasks" src="https://github.com/user-attachments/assets/5bc46a06-4d56-456d-864c-46773527411e" />
+
+---
+
+## ✨ UI Highlights
+
+- Clean and modern design
+- Status-based task filtering
+- Smooth task transitions (Not Started → In Progress → Completed)
+- AI-powered task creation and management
+- Responsive and user-friendly layout
 
 ## 🚀 How to Run the Project
 
