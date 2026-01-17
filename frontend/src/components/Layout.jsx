@@ -1,10 +1,6 @@
 import React from 'react';
 
-interface LayoutProps {
-    children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout = ({ children }) => {
     return (
         <div
             className="h-screen text-gray-900 font-sans relative overflow-hidden flex flex-col"

@@ -1,18 +1,11 @@
 import React from 'react';
-import type { Task } from '../types';
 import { X } from 'lucide-react';
 
-interface TaskEditModalProps {
-    task: Task;
-    onClose: () => void;
-    onSave: (title: string, description: string) => void;
-}
-
-const TaskEditModal: React.FC<TaskEditModalProps> = ({ task, onClose, onSave }) => {
+const TaskEditModal = ({ task, onClose, onSave }) => {
     const [title, setTitle] = React.useState(task.title);
     const [description, setDescription] = React.useState(task.description || '');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         if (title.trim()) {
             onSave(title.trim(), description.trim());

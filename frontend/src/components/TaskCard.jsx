@@ -1,19 +1,11 @@
 import React from 'react';
-import type { Task } from '../types';
 import { TaskStatus } from '../types';
 import { CheckCircle, Clock, Circle, Trash2, ArrowRight, Pencil, GripVertical } from 'lucide-react';
 import clsx from 'clsx';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-interface TaskCardProps {
-    task: Task;
-    onStatusChange: (id: number, status: TaskStatus) => void;
-    onDelete: (id: number) => void;
-    onEdit: (task: Task) => void;
-}
-
-const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onDelete, onEdit }) => {
+const TaskCard = ({ task, onStatusChange, onDelete, onEdit }) => {
     const {
         attributes,
         listeners,
@@ -39,7 +31,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange, onDelete, onE
         }
     };
 
-    const getNextStatus = (): TaskStatus | null => {
+    const getNextStatus = () => {
         if (task.status === TaskStatus.NOT_STARTED) return TaskStatus.IN_PROGRESS;
         if (task.status === TaskStatus.IN_PROGRESS) return TaskStatus.COMPLETED;
         return null;

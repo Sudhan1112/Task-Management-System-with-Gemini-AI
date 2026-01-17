@@ -2,16 +2,12 @@ import React, { useState } from 'react';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 import { sendAICommand } from '../services/api';
 
-interface ChatInterfaceProps {
-    onCommandExecuted: () => void;
-}
-
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ onCommandExecuted }) => {
+const ChatInterface = ({ onCommandExecuted }) => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
-    const [response, setResponse] = useState<{ success: boolean, message: string } | null>(null);
+    const [response, setResponse] = useState(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!input.trim()) return;
 
@@ -31,7 +27,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onCommandExecuted }) => {
             } else if (res.error) {
                 setResponse({ success: false, message: res.error });
             }
-        } catch (error: any) {
+        } catch (error) {
             setResponse({ success: false, message: "Failed to connect to AI service." });
         } finally {
             setLoading(false);

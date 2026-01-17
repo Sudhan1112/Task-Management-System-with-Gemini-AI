@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { getTasks, updateTaskStatus, deleteTask, createTask, updateTask } from '../services/api';
-import type { Task } from '../types';
 import { TaskStatus } from '../types';
 import TaskCard from '../components/TaskCard';
 import ChatInterface from '../components/ChatInterface';
@@ -14,7 +13,6 @@ import {
     PointerSensor,
     useSensor,
     useSensors,
-    type DragEndEvent,
 } from '@dnd-kit/core';
 import {
     arrayMove,
@@ -23,13 +21,13 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
-const TaskList: React.FC = () => {
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [filter, setFilter] = useState<string>('ALL');
+const TaskList = () => {
+    const [tasks, setTasks] = useState([]);
+    const [filter, setFilter] = useState('ALL');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskDesc, setNewTaskDesc] = useState('');
-    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [editingTask, setEditingTask] = useState(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -55,7 +53,7 @@ const TaskList: React.FC = () => {
         fetchTasks();
     }, [filter]);
 
-    const handleStatusChange = async (id: number, status: TaskStatus) => {
+    const handleStatusChange = async (id, status) => {
         try {
             await updateTaskStatus(id, status);
             fetchTasks();
@@ -64,14 +62,14 @@ const TaskList: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id) => {
         if (confirm("Are you sure?")) {
             await deleteTask(id);
             fetchTasks();
         }
     };
 
-    const handleCreateTask = async (e: React.FormEvent) => {
+    const handleCreateTask = async (e) => {
         e.preventDefault();
         try {
             await createTask(newTaskTitle, newTaskDesc);
@@ -84,11 +82,11 @@ const TaskList: React.FC = () => {
         }
     }
 
-    const handleEdit = (task: Task) => {
+    const handleEdit = (task) => {
         setEditingTask(task);
     };
 
-    const handleSaveEdit = async (title: string, description: string) => {
+    const handleSaveEdit = async (title, description) => {
         if (!editingTask) return;
         try {
             await updateTask(editingTask.id, title, description);
@@ -99,7 +97,7 @@ const TaskList: React.FC = () => {
         }
     };
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragEnd = (event) => {
         const { active, over } = event;
 
         if (over && active.id !== over.id) {

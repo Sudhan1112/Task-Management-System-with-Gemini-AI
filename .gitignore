@@ -9,3 +9,4 @@ build/
 coverage/
 .idea/
 .vscode/
+db.sqlite3
