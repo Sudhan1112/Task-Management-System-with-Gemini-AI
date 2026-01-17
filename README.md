@@ -1,110 +1,379 @@
-# Task Management System with Groq AI
+# 🧠 Task Management System with Groq AI
 
-## Overview
-A full-stack task management application where users can manage tasks via a React UI or natural language commands processed by Groq AI (Llama 3.3 70B model).
+A full-stack task management application where users can manage tasks via a **React-based UI** or **natural language commands** processed by **Groq AI (Llama 3.3 70B)**.
 
-## 1. Task Model & State Design
-The core entity is the `Task`, which enforces a strict state machine.
-**States:**
-- `NOT_STARTED`: Initial state.
-- `IN_PROGRESS`: Work has begun.
-- `COMPLETED`: Work is finished.
+This system is designed with a strong emphasis on **clean architecture**, **strict business rules**, and **safe AI integration**.
+AI interprets intent — **it never bypasses backend validation**.
 
-**Adherence:**
-The state logic is centralized in `tasks/services.py` (`TaskService`), ensuring that both API calls and AI commands follow the exact same rules.
+---
 
-## 2. State Transition Rules
-Transitions are strictly one-way:
-- `NOT_STARTED` -> `IN_PROGRESS`
-- `IN_PROGRESS` -> `COMPLETED`
-- Any other transition (e.g., skipping straight to Completed, or moving back to Not Started) is rejected with a `ValidationError`.
+## 📌 Overview
 
-## 3. Database Choice
-**Database:** SQLite
-**Reason:** Lightweight, serverless, and easy to set up for this specific task requirement. It fulfills the data integrity needs with ACID compliance without the overhead of a separate database server.
-**Schema:**
-- `id`: Auto-increment Integer (Primary Key)
-- `title`: String (255 chars)
-- `description`: Text (Optional)
-- `status`: String (Enum: NOT_STARTED, IN_PROGRESS, COMPLETED)
-- `created_at`: DateTime (Auto-add)
-- `updated_at`: DateTime (Auto-update)
+The Task Management System allows users to:
 
-## 4. AI Input Processing
-**Role of AI:** Intent Interpretation only. AI does NOT modify the DB directly.
-**Process:**
-1. User sends natural language command (e.g., "Add task...").
-2. Backend (`GroqService`) sends prompt to Groq API (Llama 3.3 70B) with strict JSON output instructions.
-3. Groq returns structured JSON (e.g., `{"action": "create_task", "params": {...}}`).
-4. System validates the JSON structure.
+* Create, update, and delete tasks manually through a Kanban-style UI
+* Control tasks using natural language commands (chat-based AI)
+* Enforce a strict task lifecycle using backend business logic
+* Share the same validation rules between REST APIs and AI commands
 
-## 5. Mapping AI to Business Logic
-The `IntentDispatcher` (`ai_assistant/dispatcher.py`) acts as the bridge:
-- Receives the JSON intent.
-- Maps `action` string to specific `TaskService` methods.
-- Example: `create_task` -> `TaskService.create_task()`.
-- Example: `update_task_status` -> `TaskService.update_status()`.
-**Benefits:** Reuses the exact same validation and state rules as the REST API.
+Core philosophy:
+**AI is an assistant, not an authority.**
 
-## 6. Handling Ambiguity & Errors
-- **Ambiguity:** If task ID/Title isn't clear, Groq is instructed to infer or fail gracefully. The Dispatcher checks if the task exists before acting.
-- **Invalid Commands:** If `TaskService` raises a validation error (e.g., invalid state transition), the error is caught and returned as a user-friendly message to the chat interface.
+---
 
-## 7. Detailed Architecture & Design Decisions
-The application follows a **Service-Oriented Architecture** within Django to ensure separation of concerns and reusability.
-
-### Key Architectural Layers:
-
-1.  **Domain Layer (`models.py`)**:
-    -   Defines the `Task` entity and strict choices for Status (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`).
-    -   Contains no complex logic, only data structure.
-
-2.  **Business Logic Layer (`services.py`)**:
-    -   **`TaskService`**: This is the core of the application. It encapsulates ALL business rules.
-    -   **Validation**: It enforces the state machine rules (e.g., preventing `Not Started` -> `Completed` directly).
-    -   **Single Source of Truth**: Both the REST API views and the AI Dispatcher call this service. This guarantees that **AI cannot bypass business rules**.
-
-3.  **Interface Layers**:
-    -   **REST API (`views.py`)**: Handles HTTP requests, authentication, and serialization. It explicitly calls `TaskService` for creating or updating tasks to ensure validation runs.
-    -   **AI Dispatcher (`ai_assistant/dispatcher.py`)**: Acts as a translation layer. It receives the JSON intent from `GroqService`, validates parameters, and calls the exact same `TaskService` methods as the API.
-
-### Design Patterns Used:
--   **Service Pattern**: Decoupling logic from Views allowing reuse (API vs AI).
--   **Adapter Pattern**: The AI Dispatcher adapts the AI's JSON output to the Service Layer's method signatures.
--   **State Machine**: Implicitly implemented in `TaskService.update_status` via `allowed_transitions` dictionary.
-
-### Trade-offs:
--   **Polling vs WebSockets**: For simplicity and statelessness, the frontend polls/refreshes after AI commands. WebSockets would be better for real-time updates but add significant complexity.
--   **SQLite**: Chosen for zero-configuration and portability for this evaluation task.
--   **LLM Choice**: Using Groq's Llama 3.3 70B instead of small local models ensures high reliability in outputting valid JSON, reducing the need for complex retry logic.
-
-## 8. Groq API Setup
-**Get your API key:**
-1. Visit [Groq Console](https://console.groq.com/)
-2. Create a free account (no credit card required)
-3. Generate an API key from the dashboard
-4. Add to `backend/.env` as `GROQ_API_KEY=your_key_here`
-
-**Model Used:** `llama-3.3-70b-versatile`
-- Excellent for JSON structured outputs
-- Fast inference speed (~2 seconds)
-- Superior natural language understanding
-
-## How to Run
-### Backend
-1. Navigate to `backend`.
-2. Activate venv: `source venv/bin/activate` (Mac/Linux) or `venv\Scripts\activate` (Windows).
-3. Install dependencies: `pip install -r requirements.txt`. (Already done)
-4. Apply migrations: `python manage.py migrate`. (Required for SQLite)
-5. Run server: `python manage.py runserver`.
+## 🧰 Tech Stack
 
 ### Frontend
-1. Navigate to `frontend`.
-2. Install dependencies: `npm install`. (Already done)
-3. Run dev server: `npm run dev`.
-4. Open `http://localhost:5173`.
 
-## 10. Project Structure
+* **Framework:** React (Vite)
+* **Language:** JavaScript (ES6+)
+* **Styling:** Tailwind CSS
+* **HTTP Client:** Axios
+* **State Management:** React Hooks
+* **Drag & Drop:** React DnD
+
+### Backend
+
+* **Framework:** Django 5.x
+* **API:** Django REST Framework (DRF)
+* **Language:** Python 3.x
+* **Database:** SQLite (local development)
+* **AI Integration:** Groq Python SDK
+
+### AI & Infrastructure
+
+* **LLM Model:** Llama 3.3 70B (Groq Cloud)
+* **Version Control:** Git
+* **IDE:** VS Code
+
+---
+
+## 🏗️ System Design
+
+### High-Level Design (HLD)
+
+The application follows a **Client–Server Architecture** enhanced with an **AI Service Layer**.
+
+### Architecture Overview
+
+1. **Client (Frontend)**
+   A Single Page Application (SPA) responsible for:
+
+   * Rendering the task board
+   * Handling drag-and-drop interactions
+   * Capturing text-based AI commands
+
+2. **Server (Backend)**
+   Django REST API acting as the central orchestrator:
+
+   * Manages data persistence
+   * Enforces validation and business rules
+   * Dispatches AI intents to core services
+
+3. **Database**
+   SQLite relational database storing structured task data.
+
+4. **AI Provider (Groq Cloud)**
+   External inference engine that converts natural language into structured JSON actions.
+
+### Data Flow
+
+**Standard UI Action**
+
+```
+User UI → API Endpoint → TaskService → Database
+```
+
+**AI Action**
+
+```
+User Prompt → AI API → Intent Dispatcher → TaskService → Database
+```
+
+---
+
+## 🧩 Low-Level Design (LLD)
+
+### Frontend Component Structure
+
+* **App.tsx**
+  Root entry point, routing, and global layout.
+
+* **TaskList.tsx**
+  Main dashboard integrating task lists, drag-and-drop logic, and state handling.
+
+* **TaskCard.tsx**
+  Reusable UI component for rendering individual tasks.
+
+* **ChatInterface.tsx**
+  AI sidebar handling user input, API calls, and AI responses.
+
+---
+
+### Backend Class Design
+
+#### Task Model
+
+Represents the database table for tasks.
+
+**Fields**
+
+* `title`
+* `description`
+* `status` (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`)
+* `created_at`
+* `updated_at`
+
+---
+
+#### TaskService (Business Logic Layer)
+
+Central authority for all task operations and validations.
+
+**Methods**
+
+* `create_task(title, description)`
+* `update_status(task_id, new_status)`
+* `delete_task(task_id)`
+
+**Why this layer exists**
+
+* Keeps logic out of Views
+* Allows reuse by both REST API and AI Dispatcher
+* Prevents AI from bypassing validation rules
+
+---
+
+#### IntentDispatcher (AI Logic Layer)
+
+Bridges AI-generated JSON intents to backend services.
+
+**Responsibilities**
+
+* Validate AI intent structure
+* Map `action` → service method
+* Handle task existence checks
+
+**Examples**
+
+* `create_task` → `TaskService.create_task()`
+* `update_task_status` → `TaskService.update_status()`
+* `delete_task` → `TaskService.delete_task()`
+
+---
+
+## 🌐 API Endpoints
+
+### Task APIs
+
+* `GET /api/tasks/` — List all tasks
+* `POST /api/tasks/` — Create a task
+* `PATCH /api/tasks/{id}/` — Update task details or status
+* `DELETE /api/tasks/{id}/` — Delete a task
+
+### AI API
+
+* `POST /api/ai/chat/` — Send natural language command to AI
+
+---
+
+## 🔄 Task Model & State Design
+
+The core entity is the **Task**, governed by a strict state machine.
+
+### Task States
+
+* `NOT_STARTED` — Initial state
+* `IN_PROGRESS` — Work has begun
+* `COMPLETED` — Work is finished
+
+---
+
+## 🚦 State Transition Rules
+
+Transitions are **one-way only**:
+
+* `NOT_STARTED → IN_PROGRESS`
+* `IN_PROGRESS → COMPLETED`
+
+🚫 Invalid transitions are rejected:
+
+* Skipping states
+* Reverting to previous states
+
+All enforcement happens inside `TaskService`.
+
+---
+
+## 🗄️ Database Choice
+
+**Database:** SQLite
+
+**Reasoning**
+
+* Lightweight and serverless
+* ACID compliant
+* Zero configuration overhead
+* Ideal for evaluation and local development
+
+### Database Schema
+
+| Field       | Type     | Description        |
+| ----------- | -------- | ------------------ |
+| id          | Integer  | Primary Key        |
+| title       | String   | Max 255 characters |
+| description | Text     | Optional           |
+| status      | Enum     | Task state         |
+| created_at  | DateTime | Auto-generated     |
+| updated_at  | DateTime | Auto-updated       |
+
+---
+
+## 🤖 AI Input Processing
+
+**AI Role:** Intent interpretation only
+AI **does not directly modify the database**.
+
+### Processing Flow
+
+1. User sends a natural language command
+2. Backend sends prompt to Groq API with strict JSON instructions
+3. Groq returns structured JSON intent
+4. JSON is validated for structure and safety
+5. Intent is dispatched to `TaskService`
+
+### Example AI Output
+
+```json
+{
+  "action": "create_task",
+  "params": {
+    "title": "Finish documentation",
+    "description": "Complete README formatting"
+  }
+}
+```
+
+---
+
+## 🔗 Mapping AI to Business Logic
+
+The **IntentDispatcher** ensures:
+
+* AI output is sanitized
+* Business rules are reused
+* Validation logic is shared
+
+This guarantees:
+
+* No AI privilege escalation
+* Identical behavior for UI and AI actions
+
+---
+
+## ⚠️ Handling Ambiguity & Errors
+
+* **Ambiguous Commands:**
+  Dispatcher verifies task existence before execution
+
+* **Invalid Commands:**
+  Validation errors are converted to user-friendly chat messages
+
+* **State Violations:**
+  Rejected by `TaskService` and safely reported
+
+---
+
+## 🧱 Architectural Layers & Decisions
+
+### Core Layers
+
+1. **Domain Layer (`models.py`)**
+   Defines data structures only.
+
+2. **Business Logic Layer (`services.py`)**
+   Enforces all rules and validations.
+
+3. **Interface Layers**
+
+   * REST API (`views.py`)
+   * AI Dispatcher (`ai_assistant/dispatcher.py`)
+
+---
+
+### Design Patterns Used
+
+* **Service Pattern** — Business logic isolation
+* **Adapter Pattern** — AI JSON → Service calls
+* **State Machine** — Controlled task lifecycle
+
+---
+
+### Trade-offs
+
+* **Polling over WebSockets**
+  Simpler, stateless, lower complexity
+
+* **SQLite over PostgreSQL**
+  Zero-setup and portable
+
+* **Large LLM (70B)**
+  Higher reliability for structured JSON output
+
+---
+
+## 🔑 Groq API Setup
+
+### Get Your API Key
+
+1. Visit [https://console.groq.com](https://console.groq.com)
+2. Create a free account
+3. Generate an API key
+4. Add it to `backend/.env`
+
+```env
+GROQ_API_KEY=your_key_here
+```
+
+### Model Used
+
+* `llama-3.3-70b-versatile`
+* Fast inference
+* Strong JSON reliability
+* High intent accuracy
+
+---
+
+## 🚀 How to Run the Project
+
+### Backend
+
+```bash
+cd backend
+source venv/bin/activate      # Mac/Linux
+venv\Scripts\activate         # Windows
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+---
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open:
+👉 `http://localhost:5173`
+
+---
+
+## Project Structure
+
 ```markdown
 Task Management System/
 ├── backend/                      # Backend application logic (Django + Django REST Framework)
@@ -192,3 +461,17 @@ Task Management System/
 ├── create_submission.py          # Utility Script: Automates zipping the project for submission (ignoring unnecessary files)
 └── README.md                     # Documentation: Detailed project guide, architecture details, and setup instructions
 ```
+
+---
+
+## ✅ Summary
+
+This project demonstrates:
+
+* Clean separation of concerns
+* Safe and controlled AI integration
+* Strict business rule enforcement
+* Production-inspired backend architecture
+* Scalable design without unnecessary complexity
+
+**AI assists users — it never replaces system authority.**
