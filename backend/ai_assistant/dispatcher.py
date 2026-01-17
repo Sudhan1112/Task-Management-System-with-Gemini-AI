@@ -4,55 +4,97 @@ from django.core.exceptions import ValidationError
 
 class IntentDispatcher:
     @staticmethod
-    def handle_intent(intent: dict):
-        action = intent.get('action')
-        params = intent.get('params', {})
+    def handle_intent(intents):
+        """
+        Handles one or multiple user intents.
+        Args:
+            intents: A single dict OR a list of dicts.
+        Returns:
+            dict: Aggregated result.
+        """
+        # Normalize to list
+        if isinstance(intents, dict):
+            intents = [intents]
+        
+        if not isinstance(intents, list):
+             return {"success": False, "message": "Invalid intent format received."}
 
-        if action == 'create_task':
-            title = params.get('title')
-            description = params.get('description')
-            if not title:
-                return {"success": False, "message": "Title is required for creating a task."}
-            task = TaskService.create_task(title=title, description=description)
-            return {"success": True, "message": f"Task '{task.title}' created successfully.", "task": {"id": task.id, "title": task.title}}
+        results = []
+        success_count = 0
+        
+        for intent in intents:
+            if not isinstance(intent, dict):
+                continue
+                
+            action = intent.get('action')
+            params = intent.get('params', {})
+            result = {"action": action, "success": False, "message": ""}
 
-        elif action == 'update_task_status':
-            # Logic to find task by ID or Title
-            task = IntentDispatcher._find_task(params)
-            if not task:
-                return {"success": False, "message": "Task not found."}
+            if action == 'create_task':
+                title = params.get('title')
+                description = params.get('description')
+                if not title:
+                    result["message"] = "Title is required for creating a task."
+                else:
+                    try:
+                        task = TaskService.create_task(title=title, description=description)
+                        result["success"] = True
+                        result["message"] = f"Task '{task.title}' created."
+                        result["task"] = {"id": task.id, "title": task.title}
+                        success_count += 1
+                    except Exception as e:
+                        result["message"] = str(e)
+
+            elif action == 'update_task_status':
+                task = IntentDispatcher._find_task(params)
+                if not task:
+                    result["message"] = "Task not found."
+                else:
+                    new_status = params.get('status')
+                    try:
+                        TaskService.update_status(task, new_status)
+                        result["success"] = True
+                        result["message"] = f"Task '{task.title}' updated to {new_status}."
+                        success_count += 1
+                    except ValidationError as e:
+                        result["message"] = str(e)
             
-            new_status = params.get('status')
-            title_part = params.get('title') # If found by title
-            
-            # Map friendly status to Enum if needed, but Gemini should output Enum values ideally.
-            # Assuming Gemini is strict as per prompt.
-            
-            try:
-                TaskService.update_status(task, new_status)
-                return {"success": True, "message": f"Task '{task.title}' updated to {new_status}."}
-            except ValidationError as e:
-                 return {"success": False, "message": str(e)}
+            elif action == 'list_tasks':
+                status_filter = params.get('status')
+                tasks = Task.objects.all()
+                if status_filter:
+                    tasks = tasks.filter(status=status_filter)
+                task_list = [{"id": t.id, "title": t.title, "status": t.status} for t in tasks[:5]]
+                result["success"] = True
+                result["message"] = f"Found {tasks.count()} tasks."
+                result["tasks"] = task_list
+                success_count += 1
 
-        elif action == 'list_tasks':
-            status_filter = params.get('status')
-            tasks = Task.objects.all()
-            if status_filter:
-                tasks = tasks.filter(status=status_filter)
+            elif action == 'delete_task':
+                task = IntentDispatcher._find_task(params)
+                if not task:
+                    result["message"] = "Task not found."
+                else:
+                    title = task.title
+                    task.delete()
+                    result["success"] = True
+                    result["message"] = f"Task '{title}' deleted."
+                    success_count += 1
             
-            # Limit to 5 for brevity in chat response? Or return count.
-            task_list = [{"id": t.id, "title": t.title, "status": t.status} for t in tasks[:5]]
-            return {"success": True, "message": f"Found {tasks.count()} tasks.", "tasks": task_list}
+            else:
+                 result["message"] = "Unknown action."
 
-        elif action == 'delete_task':
-             task = IntentDispatcher._find_task(params)
-             if not task:
-                return {"success": False, "message": "Task not found."}
-             title = task.title
-             task.delete()
-             return {"success": True, "message": f"Task '{title}' deleted."}
+            results.append(result)
 
-        return {"success": False, "message": "Unknown action."}
+        # Summarize results
+        if len(results) == 1:
+            return results[0] # Return single object structure for backward compatibility/simplicity
+        
+        return {
+            "success": success_count > 0,
+            "message": f"Processed {len(results)} actions. {success_count} succeeded.",
+            "results": results
+        }
 
     @staticmethod
     def _find_task(params):

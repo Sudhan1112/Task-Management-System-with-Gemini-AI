@@ -26,25 +26,34 @@ The system supports the following actions:
 
 Task Statuses: 'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'.
 
-CRITICAL: You must respond with ONLY valid JSON. No markdown, no explanation, ONLY JSON.
+
+CRITICAL: You must respond with ONLY valid JSON.
+If the user requests multiple actions (e.g., "Add task 1 and task 2"), return a LIST of JSON objects.
+If it is a single action, return a single JSON object or a list with one object.
 
 Output Format Examples:
 - User: "Add a task to buy milk"
-  Output: {"action": "create_task", "params": {"title": "Buy milk"}}
+  Output: [{"action": "create_task", "params": {"title": "Buy milk"}}]
+
+- User: "Add task A and task B"
+  Output: [
+      {"action": "create_task", "params": {"title": "Task A"}},
+      {"action": "create_task", "params": {"title": "Task B"}}
+  ]
 
 - User: "Mark task 5 as completed"
-  Output: {"action": "update_task_status", "params": {"task_id": 5, "status": "COMPLETED"}}
+  Output: [{"action": "update_task_status", "params": {"task_id": 5, "status": "COMPLETED"}}]
 
 - User: "Start working on the presentation"
-  Output: {"action": "update_task_status", "params": {"title": "presentation", "status": "IN_PROGRESS"}}
+  Output: [{"action": "update_task_status", "params": {"title": "presentation", "status": "IN_PROGRESS"}}]
 
 - User: "Show me all completed tasks"
-  Output: {"action": "list_tasks", "params": {"status": "COMPLETED"}}
+  Output: [{"action": "list_tasks", "params": {"status": "COMPLETED"}}]
 
 - User: "Delete the task about meeting"
-  Output: {"action": "delete_task", "params": {"title": "meeting"}}
+  Output: [{"action": "delete_task", "params": {"title": "meeting"}}]
 
-If the intent is unclear, return {"action": "unknown", "message": "Could not understand command"}
+If the intent is unclear, return [{"action": "unknown", "message": "Could not understand command"}]
 
 Remember: ONLY output valid JSON, nothing else."""
 
@@ -81,7 +90,19 @@ Remember: ONLY output valid JSON, nothing else."""
             response_text = response.choices[0].message.content.strip()
             
             # Parse and return JSON
-            return json.loads(response_text)
+            parsed_json = json.loads(response_text)
+            
+            # Handle case where AI returns a list of actions instead of a single object
+            if isinstance(parsed_json, list):
+                if len(parsed_json) > 0:
+                    parsed_json = parsed_json[0]
+                else:
+                    return {"action": "unknown", "message": "AI returned an empty list"}
+            
+            if not isinstance(parsed_json, dict):
+                 return {"action": "error", "message": "AI returned invalid JSON structure (not a dictionary)"}
+
+            return parsed_json
             
         except json.JSONDecodeError as e:
             print(f"Groq JSON Parse Error: {e}")
